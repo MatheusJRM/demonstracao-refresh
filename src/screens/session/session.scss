@@ -1,0 +1,78 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap");
+
+$primary-color: #3498db;
+$background-color: #ecf0f1;
+$input-border-color: #bdc3c7;
+$font-family: "Roboto", sans-serif;
+
+body {
+  margin: 0;
+  font-family: $font-family;
+  background-color: $background-color;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 88vh;
+  transition: opacity 0.2s ease-in;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.title {
+  margin: 0px 0px 50px 0px;
+}
+
+.login-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+}
+
+.title-form {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  color: $primary-color;
+}
+
+.input-group {
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: $primary-color;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid $input-border-color;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+}
+
+.login-button {
+  width: 100%;
+  padding: 10px;
+  background-color: $primary-color;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: darken($primary-color, 10%);
+  }
+}
