@@ -3,8 +3,7 @@ import { createSession } from "../service/login";
 import { STORAGE_KEYS } from "../utils/storage-keys";
 import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
-import { api } from "../service/api/api";
-// import { refreshToken } from "../service/login/post-refresh-token";
+import { useAxios } from "../hooks/useAxios";
 
 type Organization = {
   idOrganization: string;
@@ -37,6 +36,8 @@ interface AuthContextProps {
   user: UserInfo;
   permissions: string[];
   isAuthenticated: boolean;
+  data: SessionData;
+  setData: React.Dispatch<React.SetStateAction<SessionData>>;
   signIn(email: string, password: string): void;
   logout(): void;
 }
@@ -50,6 +51,8 @@ export const AuthContext = createContext({} as AuthContextProps);
 export function AuthProvider({ children }: AuthProviderProps) {
   const [data, setData] = useState({} as SessionData);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const axiosInstance = useAxios();
 
   useEffect(() => {
     const storageToken = localStorage.getItem(STORAGE_KEYS.TOKEN_KEY);
@@ -67,16 +70,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       storageUser &&
       storagePermissions
     ) {
-      const oldToken: {
-        scoop: string;
-        iat: number;
-        exp: number;
-        sub: string;
-      } = jwtDecode(storageToken);
+      const oldToken: { exp: number } = jwtDecode(storageToken);
       const isExpired = dayjs.unix(oldToken.exp).diff(dayjs()) < 1;
       if (!isExpired) {
-        api.defaults.headers["Authorization"] = `Bearer ${storageToken}`;
-        api.defaults.headers["permissions"] = storagePermissions;
+        axiosInstance.defaults.headers[
+          "Authorization"
+        ] = `Bearer ${storageToken}`;
+        axiosInstance.defaults.headers["permissions"] = storagePermissions;
 
         setData({
           user: JSON.parse(storageUser),
@@ -99,8 +99,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
     createSession(body)
       .then((response) => {
-        api.defaults.headers["Authorization"] = `Bearer ${response.data.token}`;
-        api.defaults.headers["permissions"] = JSON.stringify(
+        axiosInstance.defaults.headers[
+          "Authorization"
+        ] = `Bearer ${response.data.token}`;
+        axiosInstance.defaults.headers["permissions"] = JSON.stringify(
           response.data.permissionsArray
         );
         setData(response.data);
@@ -130,79 +132,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.clear();
   }
 
-  // api.interceptors.request.use(
-  //   (request) => {
-  //     const storageToken = localStorage.getItem(STORAGE_KEYS.TOKEN_KEY);
-  //     if (storageToken) {
-  //       const oldToken: {
-  //         scoop: string;
-  //         iat: number;
-  //         exp: number;
-  //         sub: string;
-  //       } = jwtDecode(storageToken);
-  //       const isExpired = dayjs.unix(oldToken.exp).diff(dayjs()) < 1;
-  //       if (isExpired) {
-  //         const storageRefreshToken = localStorage.getItem(
-  //           STORAGE_KEYS.REFRESH_TOKEN_KEY
-  //         );
-  //         const body = {
-  //           refreshToken: `Bearer ${storageRefreshToken}`,
-  //         };
-  //         refreshToken(body).then((response) => {
-  //           console.log("RESPOSTA REFRESH", response.data);
-  //           request.headers["Authorization"] = `Bearer ${response.data.token}`;
-  //           api.defaults.headers[
-  //             "Authorization"
-  //           ] = `Bearer ${response.data.token}`;
-  //           localStorage.setItem(STORAGE_KEYS.TOKEN_KEY, response.data.token);
-  //           localStorage.setItem(
-  //             STORAGE_KEYS.REFRESH_TOKEN_KEY,
-  //             response.data.refreshToken
-  //           );
-  //         });
-  //         return Promise.resolve(request);
-  //       }
-  //     }
-  //     return request;
-  //   },
-  //   (error) => {
-  //     return Promise.reject(error);
-  //   }
-  // );
-
-  // api.interceptors.response.use(
-  //   (response) => {
-  //     return response;
-  //   },
-  //   (error) => {
-  //     if (error.response.status === 401) {
-  //       const storageRefreshToken = localStorage.getItem(
-  //         STORAGE_KEYS.REFRESH_TOKEN_KEY
-  //       );
-  //       const body = {
-  //         refreshToken: `Bearer ${storageRefreshToken}`,
-  //       };
-  //       refreshToken(body).then((response) => {
-  //         console.log("RESPOSTA REFRESH", response.data);
-  //         error.config.headers[
-  //           "Authorization"
-  //         ] = `Bearer ${response.data.token}`;
-  //         api.defaults.headers[
-  //           "Authorization"
-  //         ] = `Bearer ${response.data.token}`;
-  //         localStorage.setItem(STORAGE_KEYS.TOKEN_KEY, response.data.token);
-  //         localStorage.setItem(
-  //           STORAGE_KEYS.REFRESH_TOKEN_KEY,
-  //           response.data.refreshToken
-  //         );
-  //       });
-  //       return error.config;
-  //     } else {
-  //       return Promise.reject(error);
-  //     }
-  //   }
-  // );
-
   return (
     <AuthContext.Provider
       value={{
@@ -211,6 +140,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user: data.user,
         permissions: data.permissionsArray,
         isAuthenticated,
+        data,
+        setData,
         signIn,
         logout,
       }}

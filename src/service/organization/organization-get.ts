@@ -1,6 +1,6 @@
-import { api } from "../api/api";
+import { AxiosInstance } from "axios";
 
-export function getOrganizations(type: string) {
+export function getOrganizations(api: AxiosInstance, type: string) {
   return api.get("/organization/linked", {
     params: {
       type,
