@@ -43,6 +43,9 @@ export function useAxios() {
         refreshToken: response.data.refreshToken,
       });
 
+      document.cookie = `token=${response.data.token}`;
+      document.cookie = `refreshToken=${response.data.refreshToken}`;
+
       request.headers.Authorization = `Bearer ${response.data.token}`;
       api.defaults.headers["Authorization"] = `Bearer ${response.data.token}`;
 
