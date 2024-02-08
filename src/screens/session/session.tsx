@@ -18,7 +18,6 @@ export function Session() {
 
   return (
     <div className={`container ${isAuthenticated ? "hidden" : ""}`}>
-      <h1 className="title">Apresentação Refresh Token</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();

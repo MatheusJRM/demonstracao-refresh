@@ -5,6 +5,7 @@ import "../../App.css";
 import { useAuth } from "../../hooks/useAuth";
 import { getOrganizations } from "../../service/organization/";
 import { useAxios } from "../../hooks/useAxios";
+import "../session/session.scss";
 
 type IndustryProps = {
   id: string;
@@ -13,7 +14,7 @@ type IndustryProps = {
 
 export function Home() {
   const axiosInstance = useAxios();
-  const { token, logout } = useAuth();
+  const { logout } = useAuth();
   const [count, setCount] = useState(0);
   const [industries, setIndustries] = useState<IndustryProps[]>([]);
 
@@ -24,18 +25,11 @@ export function Home() {
   function handleGetOrganizations() {
     getOrganizations(axiosInstance, "industry")
       .then((response) => {
-        console.log(
-          "Requisição bem sucedida",
-          response,
-          response.status,
-          response.data
-        );
+        console.log("Requisição bem sucedida", response.status);
         setIndustries(response.data);
-        // alert("FUNÇÃO REALIZADA COM SUCESSO!");
       })
       .catch((err) => {
-        console.log("erro", err.response, token);
-
+        setIndustries([]);
         if (err.response.status === 401) {
           alert("TOKEN INVÁLIDO!");
         }
@@ -52,19 +46,17 @@ export function Home() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+      <h1 className="title">Refresh Token</h1>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+          Chamar requisição {count}
         </button>
         {!!industries &&
           industries.map((industry) => (
             <p key={industry.id}>{industry.fantasy_name}</p>
           ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <p className="read-the-docs">Clique para deslogar</p>
       <button type="button" className="login-button" onClick={logout}>
         Sair
       </button>

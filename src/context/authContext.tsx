@@ -1,9 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { createSession } from "../service/login";
 import { STORAGE_KEYS } from "../utils/storage-keys";
-import { jwtDecode } from "jwt-decode";
-import dayjs from "dayjs";
-import { useAxios } from "../hooks/useAxios";
+import { getCookieData } from "../utils/get-cookie-data";
 
 type Organization = {
   idOrganization: string;
@@ -52,8 +50,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [data, setData] = useState({} as SessionData);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const axiosInstance = useAxios();
-
   useEffect(() => {
     const storageToken = localStorage.getItem(STORAGE_KEYS.TOKEN_KEY);
     const storageRefreshToken = localStorage.getItem(
@@ -70,25 +66,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       storageUser &&
       storagePermissions
     ) {
-      const oldToken: { exp: number } = jwtDecode(storageToken);
-      const isExpired = dayjs.unix(oldToken.exp).diff(dayjs()) < 1;
-      if (!isExpired) {
-        axiosInstance.defaults.headers[
-          "Authorization"
-        ] = `Bearer ${storageToken}`;
-        axiosInstance.defaults.headers["permissions"] = storagePermissions;
+      setData({
+        user: JSON.parse(storageUser),
+        token: storageToken,
+        refreshToken: storageRefreshToken,
+        permissionsArray: JSON.parse(storagePermissions),
+      });
 
-        setData({
-          user: JSON.parse(storageUser),
-          token: storageToken,
-          refreshToken: storageRefreshToken,
-          permissionsArray: JSON.parse(storagePermissions),
-        });
-
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
   }, []);
 
@@ -99,13 +86,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
     createSession(body)
       .then((response) => {
-        axiosInstance.defaults.headers[
-          "Authorization"
-        ] = `Bearer ${response.data.token}`;
-        axiosInstance.defaults.headers["permissions"] = JSON.stringify(
-          response.data.permissionsArray
-        );
-        setData(response.data);
+        // PEGANDO DADOS DA RESPOSTA
+        // setData(response.data);
+
+        // PEGANDO DADOS DO COOKIE
+        setData({
+          permissionsArray: JSON.parse(getCookieData("permission")),
+          refreshToken: getCookieData("refreshToken"),
+          token: getCookieData("token"),
+          user: JSON.parse(getCookieData("user")),
+        });
+
+        // ARMAZANANDO NO LOCAL STORAGE
         localStorage.setItem(
           STORAGE_KEYS.USER_KEY,
           JSON.stringify(response.data.user)

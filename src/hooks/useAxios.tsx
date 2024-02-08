@@ -1,9 +1,9 @@
 import axios from "axios";
-import dayjs from "dayjs";
-import { jwtDecode } from "jwt-decode";
 import { STORAGE_KEYS } from "../utils/storage-keys";
 import { sendRefreshToken } from "../service/login/post-refresh-token";
 import { useAuth } from "./useAuth";
+import { jwtDecode } from "jwt-decode";
+import dayjs from "dayjs";
 
 export function useAxios() {
   const { token, refreshToken, data, setData } = useAuth();
@@ -76,13 +76,16 @@ export function useAxios() {
   //         response.data.refreshToken
   //       );
 
+  //       document.cookie = `token=${response.data.token}`;
+  //       document.cookie = `refreshToken=${response.data.refreshToken}`;
+
   //       setData({
   //         ...data,
   //         token: response.data.token,
   //         refreshToken: response.data.refreshToken,
   //       });
 
-  //       return error.config;
+  //       return axios(error.config);
   //     } else {
   //       return Promise.reject(error);
   //     }
